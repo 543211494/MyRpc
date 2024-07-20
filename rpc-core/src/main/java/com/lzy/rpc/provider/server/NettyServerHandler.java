@@ -44,4 +44,12 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<FullHttpRequ
         response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
         channelHandlerContext.writeAndFlush(response);
     }
+
+    /**
+     * 捕获异常
+     */
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        ctx.close();
+    }
 }
