@@ -5,7 +5,8 @@
 项目结构：
 
 ```
-├── common   公共接口，用于演示用法
+.
+├── common  公共接口，用于演示用法
 │   ├── pom.xml
 │   └── src
 │       ├── main
@@ -20,11 +21,13 @@
 │   ├── pom.xml
 │   └── src
 │       ├── main
-│       │   └── java
-│       │       └── com
-│       │           └── lzy
-│       │               └── consumer
-│       │                   └── Main.java
+│       │   ├── java
+│       │   │   └── com
+│       │   │       └── lzy
+│       │   │           └── consumer
+│       │   │               └── Main.java
+│       │   └── resources
+│       │       └── application.properties
 │       └── test
 │           └── java
 ├── pom.xml
@@ -32,12 +35,14 @@
 │   ├── pom.xml
 │   └── src
 │       ├── main
-│       │   └── java
-│       │       └── com
-│       │           └── lzy
-│       │               └── provider
-│       │                   ├── CalculatorServiceImpl.java
-│       │                   └── Main.java
+│       │   ├── java
+│       │   │   └── com
+│       │   │       └── lzy
+│       │   │           └── provider
+│       │   │               ├── CalculatorServiceImpl.java
+│       │   │               └── Main.java
+│       │   └── resources
+│       │       └── application.properties
 │       └── test
 │           └── java
 ├── README.md
@@ -49,25 +54,37 @@
         │       └── com
         │           └── lzy
         │               └── rpc
-        │                   ├── bean  请求回复实体类
+        │                   ├── anno   注解
+        │                   │   └── RpcService.java  用于实例化服务提供类的注解
+        │                   ├── bean   请求回复实体类
         │                   │   ├── RpcRequest.java
         │                   │   └── RpcResponse.java
+        │                   ├── bootstrap  客户端/服务端启动类
+        │                   │   ├── ConsumerBootstrap.java
+        │                   │   └── ProviderBootstrap.java
+        │                   ├── config  配置类
+        │                   │   ├── Constant.java  常数
+        │                   │   └── RpcConfig.java  配置类
         │                   ├── consumer  客户端调用部分
         │                   │   └── proxy  客户端代理类及代理工厂
         │                   │       ├── ServiceProxyFactory.java
         │                   │       └── ServiceProxy.java
-        │                   ├── provider  服务端调用部分
+        │                   ├── provider   服务端调用部分
         │                   │   ├── registry  本地map注册中心(待升级)
         │                   │   │   └── LocalRegistry.java
-        │                   │   └── server  netty服务器
+        │                   │   └── server   netty服务器
         │                   │       ├── NettyRpcServer.java
         │                   │       └── NettyServerHandler.java
-        │                   └── util  序列化类
-        │                       ├── JdkSerializer.java
-        │                       └── Serializer.java
+        │                   ├── RpcApplication.java
+        │                   └── util   工具类
+        │                       ├── ConfigUtil.java  配置加载类
+        │                       ├── JdkSerializer.java  jdk序列化类
+        │                       └── Serializer.java  序列化接口
         └── test
             └── java
 ```
+
+
 
 # 2.启动方法
 
@@ -77,12 +94,22 @@
 
 ```java
 public static void main(String[] args) {
-    /**
-     * 注册提供服务的实体类
-     */
-    LocalRegistry.register(CalculatorService.class.getName(),CalculatorServiceImpl.class);
-    NettyRpcServer server = new NettyRpcServer();
-    server.start(8080);
+    ProviderBootstrap.run();
+}
+```
+
+目前服务端以实现了自动注解和读取配置文件`application.properties`
+
+只需要在实现接口的类上加上注解`@RpcService`即可自动注册，无需手动注册，例如
+
+```java
+@RpcService
+public class CalculatorServiceImpl implements CalculatorService {
+
+    @Override
+    public int add(int a, int b) {
+        return a+b;
+    }
 }
 ```
 
@@ -90,6 +117,7 @@ public static void main(String[] args) {
 
 ```java
 public static void main(String[] args) {
+    ConsumerBootstrap.init();
     CalculatorService calculatorService = ServiceProxyFactory.getProxy(CalculatorService.class);
     System.out.println(calculatorService.add(1,2));
 }
