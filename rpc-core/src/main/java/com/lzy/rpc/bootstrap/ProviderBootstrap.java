@@ -5,6 +5,8 @@ import com.lzy.rpc.anno.RpcService;
 import com.lzy.rpc.provider.registry.LocalRegistry;
 import com.lzy.rpc.provider.server.NettyRpcServer;
 import org.reflections.Reflections;
+import org.reflections.scanners.Scanner;
+import org.reflections.util.ConfigurationBuilder;
 
 import java.util.Set;
 
@@ -19,7 +21,7 @@ public class ProviderBootstrap {
         /**
          * 实例化注解标记的类，并注册至注册中心
          */
-        Reflections reflections = new Reflections();
+        Reflections reflections = new Reflections(new ConfigurationBuilder().forPackages(""));
         /* 获取指定包下的所有类,并实例化对象并缓存 */
         Set<Class<?>> classes = reflections.getTypesAnnotatedWith(RpcService.class);
         try {
@@ -29,7 +31,7 @@ public class ProviderBootstrap {
                 /* 获取所实现接口的名称 */
                 String serviceName = clazz.getInterfaces()[0].getName();
                 serviceName = serviceName.substring(serviceName.lastIndexOf('.')+1);
-                //System.out.println(serviceName);
+                System.out.println(serviceName);
                 LocalRegistry.register(serviceName,object);
             }
         }catch (Exception e){
