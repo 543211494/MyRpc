@@ -5,12 +5,14 @@ import cn.hutool.http.HttpResponse;
 import com.lzy.rpc.RpcApplication;
 import com.lzy.rpc.bean.RpcRequest;
 import com.lzy.rpc.bean.RpcResponse;
+import com.lzy.rpc.bean.ServiceInfo;
 import com.lzy.rpc.util.JdkSerializer;
 import com.lzy.rpc.util.Serializer;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.List;
 
 public class ServiceProxy implements InvocationHandler {
 
@@ -31,8 +33,17 @@ public class ServiceProxy implements InvocationHandler {
             // 序列化
             byte[] data = serializer.serialize(rpcRequest);
             // 发送请求
-            // todo 注意，这里地址被硬编码了（需要使用注册中心和服务发现机制解决）
-            try (HttpResponse httpResponse = HttpRequest.post("http://"+RpcApplication.rpcConfig.getServerHost()+":"+RpcApplication.rpcConfig.getServerPort())
+            String url = RpcApplication.rpcConfig.getClient().getAddress();
+            if(RpcApplication.registry!=null){
+                List<ServiceInfo> services = RpcApplication.registry.serviceDiscovery(RpcApplication.rpcConfig.getClient().getServiceName());
+                /**
+                 * 此处待实现负载均衡
+                 */
+                if(services!=null&&!services.isEmpty()){
+                    url = services.get(0).getAddress();
+                }
+            }
+            try (HttpResponse httpResponse = HttpRequest.post(url)
                     .body(data)
                     .execute()) {
                 byte[] result = httpResponse.bodyBytes();

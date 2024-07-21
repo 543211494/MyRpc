@@ -6,13 +6,25 @@ import lombok.ToString;
 @Data
 @ToString
 public class RpcConfig {
-    /**
-     * 服务器主机名
-     */
-    private String serverHost = "127.0.0.1";
 
     /**
-     * 服务器端口号
+     * 是否启用注册中心
      */
-    private Integer serverPort = 8080;
+    private boolean useRegistry = false;
+
+    /**
+     * 服务端配置
+     */
+    private ServerConfig server = new ServerConfig();
+
+    /**
+     * 客户端配置
+     */
+    private ClientConfig client = new ClientConfig();
+
+    /**
+     * 注册中心配置
+     */
+    private RegistryConfig registry = new RegistryConfig();
+
 }

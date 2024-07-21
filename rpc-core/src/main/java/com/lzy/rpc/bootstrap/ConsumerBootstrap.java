@@ -9,6 +9,5 @@ public class ConsumerBootstrap {
 
     public static void init(){
         RpcApplication.init();
-        //System.out.println(RpcApplication.rpcConfig);
     }
 }

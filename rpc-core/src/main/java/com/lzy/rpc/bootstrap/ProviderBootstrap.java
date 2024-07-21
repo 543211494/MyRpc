@@ -2,10 +2,10 @@ package com.lzy.rpc.bootstrap;
 
 import com.lzy.rpc.RpcApplication;
 import com.lzy.rpc.anno.RpcService;
+import com.lzy.rpc.bean.ServiceInfo;
 import com.lzy.rpc.provider.registry.LocalRegistry;
 import com.lzy.rpc.provider.server.NettyRpcServer;
 import org.reflections.Reflections;
-import org.reflections.scanners.Scanner;
 import org.reflections.util.ConfigurationBuilder;
 
 import java.util.Set;
@@ -17,6 +17,16 @@ public class ProviderBootstrap {
     public static void run(){
         RpcApplication.init();
         //System.out.println(RpcApplication.rpcConfig);
+        /**
+         * 服务端启动时向服务注册中心注册
+         */
+        if(RpcApplication.registry!=null){
+            ServiceInfo serviceInfo = new ServiceInfo();
+            serviceInfo.setServiceName(RpcApplication.rpcConfig.getServer().getServiceName());
+            serviceInfo.setServiceHost(RpcApplication.rpcConfig.getServer().getHost());
+            serviceInfo.setServicePort(RpcApplication.rpcConfig.getServer().getPort());
+            RpcApplication.registry.register(serviceInfo);
+        }
 
         /**
          * 实例化注解标记的类，并注册至注册中心
@@ -31,7 +41,7 @@ public class ProviderBootstrap {
                 /* 获取所实现接口的名称 */
                 String serviceName = clazz.getInterfaces()[0].getName();
                 serviceName = serviceName.substring(serviceName.lastIndexOf('.')+1);
-                System.out.println(serviceName);
+                //System.out.println(serviceName);
                 LocalRegistry.register(serviceName,object);
             }
         }catch (Exception e){
@@ -41,6 +51,6 @@ public class ProviderBootstrap {
 
         /* 启动服务 */
         NettyRpcServer server = new NettyRpcServer();
-        server.start(RpcApplication.rpcConfig.getServerPort());
+        server.start(RpcApplication.rpcConfig.getServer().getPort());
     }
 }

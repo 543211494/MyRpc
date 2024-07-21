@@ -2,6 +2,9 @@ package com.lzy.rpc.util;
 
 import cn.hutool.setting.dialect.Props;
 
+/**
+ * 配置加载工具类
+ */
 public class ConfigUtil {
 
     /**
