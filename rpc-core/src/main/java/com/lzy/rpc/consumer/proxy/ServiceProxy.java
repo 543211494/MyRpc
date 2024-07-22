@@ -30,17 +30,17 @@ public class ServiceProxy implements InvocationHandler {
         rpcRequest.setArgs(args);
 
         try {
-            // 序列化
+            /* 序列化 */
             byte[] data = serializer.serialize(rpcRequest);
-            // 发送请求
+            /* 发送请求 */
             String url = RpcApplication.rpcConfig.getClient().getAddress();
             if(RpcApplication.registry!=null){
                 List<ServiceInfo> services = RpcApplication.registry.serviceDiscovery(RpcApplication.rpcConfig.getClient().getServiceName());
                 /**
-                 * 此处待实现负载均衡
+                 * 使用选定的负载均衡策略选择服务
                  */
                 if(services!=null&&!services.isEmpty()){
-                    url = services.get(0).getAddress();
+                    url = RpcApplication.loadBalancer.select(services).getAddress();
                 }
             }
             try (HttpResponse httpResponse = HttpRequest.post(url)

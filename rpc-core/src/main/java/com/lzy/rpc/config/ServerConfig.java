@@ -24,4 +24,9 @@ public class ServerConfig {
      * 服务器端口号
      */
     private Integer port = 8080;
+
+    /**
+     * 服务权重
+     */
+    private Integer weight = 1;
 }

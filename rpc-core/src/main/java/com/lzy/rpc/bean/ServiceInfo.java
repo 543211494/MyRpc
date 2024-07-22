@@ -25,6 +25,11 @@ public class ServiceInfo {
      */
     private Integer servicePort;
 
+    /**
+     * 服务权重
+     */
+    private Integer weight;
+
     public String getAddress(){
         return "http://"+this.serviceHost+":"+this.servicePort;
     }

@@ -25,6 +25,7 @@ public class ProviderBootstrap {
             serviceInfo.setServiceName(RpcApplication.rpcConfig.getServer().getServiceName());
             serviceInfo.setServiceHost(RpcApplication.rpcConfig.getServer().getHost());
             serviceInfo.setServicePort(RpcApplication.rpcConfig.getServer().getPort());
+            serviceInfo.setWeight(RpcApplication.rpcConfig.getServer().getWeight());
             RpcApplication.registry.register(serviceInfo);
         }
 
@@ -51,6 +52,8 @@ public class ProviderBootstrap {
 
         /* 启动服务 */
         NettyRpcServer server = new NettyRpcServer();
+//        System.out.println(RpcApplication.rpcConfig);
+//        System.out.println(RpcApplication.rpcConfig.getServer().getPort());
         server.start(RpcApplication.rpcConfig.getServer().getPort());
     }
 }
