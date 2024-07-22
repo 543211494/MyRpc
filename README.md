@@ -11,42 +11,36 @@
 ├── common    公共接口，用于演示用法
 │   ├── pom.xml
 │   └── src
-│       ├── main
-│       │   └── java
-│       │       └── com
-│       │           └── lzy
-│       │               └── common
-│       │                   └── CalculatorService.java
-│       └── test
+│       └── main
 │           └── java
+│               └── com
+│                   └── lzy
+│                       └── common
+│                           └── CalculatorService.java
 ├── consumer   客户端，用于演示用法
 │   ├── pom.xml
 │   └── src
-│       ├── main
-│       │   ├── java
-│       │   │   └── com
-│       │   │       └── lzy
-│       │   │           └── consumer
-│       │   │               └── Main.java
-│       │   └── resources
-│       │       └── application.properties
-│       └── test
-│           └── java
+│       └── main
+│           ├── java
+│           │   └── com
+│           │       └── lzy
+│           │           └── consumer
+│           │               └── Main.java
+│           └── resources
+│               └── application.properties
 ├── pom.xml
 ├── provider   服务端，用于演示用法
 │   ├── pom.xml
 │   └── src
-│       ├── main
-│       │   ├── java
-│       │   │   └── com
-│       │   │       └── lzy
-│       │   │           └── provider
-│       │   │               ├── CalculatorServiceImpl.java
-│       │   │               └── Main.java
-│       │   └── resources
-│       │       └── application.properties
-│       └── test
-│           └── java
+│       └── main
+│           ├── java
+│           │   └── com
+│           │       └── lzy
+│           │           └── provider
+│           │               ├── CalculatorServiceImpl.java
+│           │               └── Main.java
+│           └── resources
+│               └── application.properties
 ├── README.md
 └── rpc-core
     ├── pom.xml
@@ -58,7 +52,7 @@
         │   │           └── rpc
         │   │               ├── anno  注解
         │   │               │   └── RpcService.java    用于实例化服务提供类的注解
-        │   │               ├── bean  实体类
+        │   │               ├── bean
         │   │               │   ├── RpcRequest.java    RPC请求实体类
         │   │               │   ├── RpcResponse.java   RPC回复实体类
         │   │               │   └── ServiceInfo.java   服务端注册信息实体类
@@ -75,6 +69,12 @@
         │   │               │   └── proxy  客户端代理类及代理工厂
         │   │               │       ├── ServiceProxyFactory.java
         │   │               │       └── ServiceProxy.java
+        │   │               ├── loadbalancer
+        │   │               │   ├── LoadBalancer.java               负载均衡接口
+        │   │               │   ├── LoadBalancerPolicy.java         标识负载均衡策略的常量
+        │   │               │   ├── RandomLoadBalancer.java         随机负载均衡实现
+        │   │               │   ├── RoundRobinLoadBalancer.java     带权重的随机负载均衡实现
+        │   │               │   └── WeightedRandomLoadBalancer.java 轮询负载均衡实现
         │   │               ├── provider
         │   │               │   ├── registry
         │   │               │   │   ├── LocalRegistry.java   本地对象注册中心
@@ -83,22 +83,63 @@
         │   │               │   └── server  netty服务器
         │   │               │       ├── NettyRpcServer.java
         │   │               │       └── NettyServerHandler.java
-        │   │               ├── RpcApplication.java  存储配置类实例和注册中心类实例
-        │   │               └── util   工具类
+        │   │               ├── RpcApplication.java   存储配置类实例和注册中心类实例
+        │   │               └── util
         │   │                   ├── ConfigUtil.java     配置加载类
         │   │                   ├── JdkSerializer.java  jdk序列化类
-        │   │                   └── Serializer.java     序列化接口
+        │   │                   ├── Serializer.java     序列化接口
+        │   │                   └── SpiLoader.java      spi加载器
         │   └── resources
-        │       └── log4j.properties  日志配置文件(用于关闭curator日志打印)
+        │       ├── log4j.properties  日志配置文件(用于关闭curator日志打印)
+        │       └── META-INF
+        │           └── rpc
+        │               └── spi.properties   spi配置文件
         └── test
             └── java
 ```
 
-## 2.配置信息
+## 2.使用方法
+
+项目为标准的`Maven`项目
+
+`provider`下为服务端代码，执行其中的`main`函数即可启动服务端，服务端启动方式如下
+
+```java
+public static void main(String[] args) {
+    ProviderBootstrap.run();
+}
+```
+
+目前服务端以实现了自动注解和读取配置文件`application.properties`
+
+只需要在实现接口的类上加上注解`@RpcService`即可自动注册，无需手动注册，例如
+
+```java
+@RpcService
+public class CalculatorServiceImpl implements CalculatorService {
+
+    @Override
+    public int add(int a, int b) {
+        return a+b;
+    }
+}
+```
+
+`consumer`文件夹下为客户端代码，通过代理工厂获取代理类，从而调用服务端的远程方法
+
+```java
+public static void main(String[] args) {
+    ConsumerBootstrap.init();
+    CalculatorService calculatorService = ServiceProxyFactory.getProxy(CalculatorService.class);
+    System.out.println(calculatorService.add(1,2));
+}
+```
+
+## 3.配置信息
 
 配置信息写于`resource`文件夹下的`application.properties`文件中
 
-### 2.1服务端配置信息
+### 3.1服务端配置信息
 
 ```properties
 #服务端地址，用于向注册中心注册
@@ -107,6 +148,8 @@ rpc.server.host=127.0.0.1
 rpc.server.serviceName=test
 #服务端端口
 rpc.server.port=8081
+#服务权重
+rpc.server.weight=2
 #是否启用注册中心
 rpc.useRegistry=true
 #注册中心地址
@@ -119,7 +162,7 @@ rpc.registry.timeout=10000
 rpc.registry.maxRetries=3
 ```
 
-### 2.2客户端配置信息
+### 3.2客户端配置信息
 
 ```properties
 #要连接的服务端服务名称，用于向注册中心发现服务
@@ -128,6 +171,8 @@ rpc.client.serviceName=test
 rpc.client.serverHost=127.0.0.1
 #要连接的服务端端口号，用于不启用注册中心时连接服务端
 rpc.client.serverPort=8081
+#负载均衡策略，目前支持random、weightedRandom、roundRobin三种负载均衡策略
+rpc.client.loadBalancerPolicy=random
 #是否启用注册中心
 rpc.useRegistry=true
 #注册中心地址
@@ -140,7 +185,7 @@ rpc.registry.timeout=10000
 rpc.registry.maxRetries=3
 ```
 
-## 3.注册中心
+## 4.注册中心
 
 本次更新了对服务注册发现功能的支持，目前支持使用`zookeeper`作为服务注册中心。用户可自行在`application.properties`文件中配置，并可选择开启/关闭服务注册中心。若关闭注册中心，则需在配置文件中配置服务端`ip`和端口进行连接。
 
@@ -194,39 +239,16 @@ delete /app1
 deleteall /app1
 ```
 
-## 4.启动方法
+## 5.负载均衡
 
-项目为标准的`Maven`项目
+本次更新主要实现了负载均衡策略和`spi`机制，实现了随机、带权重的随机、轮询三种负载均衡
 
-`provider`下为服务端代码，执行其中的`main`函数即可启动服务端，服务端启动方式如下
+用户可在配置文件中自行选择(详见配置信息)，负载均衡实现类的路径写在`resource/META-INF/rpc/spi.properties`中
 
-```java
-public static void main(String[] args) {
-    ProviderBootstrap.run();
-}
+```properties
+com.lzy.rpc.loadbalancer.LoadBalancer.random=com.lzy.rpc.loadbalancer.RandomLoadBalancer
+com.lzy.rpc.loadbalancer.LoadBalancer.roundRobin=com.lzy.rpc.loadbalancer.RoundRobinLoadBalancer
+com.lzy.rpc.loadbalancer.LoadBalancer.weightedRandom=com.lzy.rpc.loadbalancer.WeightedRandomLoadBalancer
 ```
 
-目前服务端以实现了自动注解和读取配置文件`application.properties`
-
-只需要在实现接口的类上加上注解`@RpcService`即可自动注册，无需手动注册，例如
-
-```java
-@RpcService
-public class CalculatorServiceImpl implements CalculatorService {
-
-    @Override
-    public int add(int a, int b) {
-        return a+b;
-    }
-}
-```
-
-`consumer`文件夹下为客户端代码，通过代理工厂获取代理类，从而调用服务端的远程方法
-
-```java
-public static void main(String[] args) {
-    ConsumerBootstrap.init();
-    CalculatorService calculatorService = ServiceProxyFactory.getProxy(CalculatorService.class);
-    System.out.println(calculatorService.add(1,2));
-}
-```
+运行时根据用户在配置文件中的设置，通过`spi`加载用户指定的负载均衡策略实现类
