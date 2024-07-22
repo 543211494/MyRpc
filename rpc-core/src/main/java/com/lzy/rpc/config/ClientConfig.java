@@ -1,5 +1,6 @@
 package com.lzy.rpc.config;
 
+import com.lzy.rpc.consumer.retry.RetryPolicy;
 import com.lzy.rpc.loadbalancer.LoadBalancerPolicy;
 import lombok.Data;
 import lombok.ToString;
@@ -30,6 +31,11 @@ public class ClientConfig {
      * 负载均衡策略
      */
     private String loadBalancerPolicy = LoadBalancerPolicy.RANDOM;
+
+    /**
+     * 重试策略
+     */
+    private String retry = RetryPolicy.NO_RETRY;
 
     public String getAddress(){
         return "http://"+this.serverHost+":"+this.serverPort;

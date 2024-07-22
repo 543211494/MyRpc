@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 public class ServiceProxy implements InvocationHandler {
 
@@ -30,9 +31,6 @@ public class ServiceProxy implements InvocationHandler {
         rpcRequest.setArgs(args);
 
         try {
-            /* 序列化 */
-            byte[] data = serializer.serialize(rpcRequest);
-            /* 发送请求 */
             String url = RpcApplication.rpcConfig.getClient().getAddress();
             if(RpcApplication.registry!=null){
                 List<ServiceInfo> services = RpcApplication.registry.serviceDiscovery(RpcApplication.rpcConfig.getClient().getServiceName());
@@ -43,14 +41,24 @@ public class ServiceProxy implements InvocationHandler {
                     url = RpcApplication.loadBalancer.select(services).getAddress();
                 }
             }
-            try (HttpResponse httpResponse = HttpRequest.post(url)
-                    .body(data)
-                    .execute()) {
-                byte[] result = httpResponse.bodyBytes();
-                // 反序列化
-                RpcResponse rpcResponse = serializer.deserialize(result, RpcResponse.class);
-                return rpcResponse.getData();
-            }
+            String finalUrl = url;
+
+            RpcResponse rpcResponse = RpcApplication.retry.doRetry(new Callable<RpcResponse>() {
+                @Override
+                public RpcResponse call() throws Exception {
+                    //System.out.println("try");
+                    /* 序列化 */
+                    byte[] data = serializer.serialize(rpcRequest);
+                    /* 发送请求 */
+                    HttpResponse httpResponse = HttpRequest.post(finalUrl)
+                            .body(data)
+                            .execute();
+                    byte[] result = httpResponse.bodyBytes();
+                    /* 反序列化 */
+                    return serializer.deserialize(result, RpcResponse.class);
+                }
+            });
+            return rpcResponse.getData();
         } catch (IOException e) {
             e.printStackTrace();
         }
