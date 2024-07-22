@@ -252,3 +252,5 @@ com.lzy.rpc.loadbalancer.LoadBalancer.weightedRandom=com.lzy.rpc.loadbalancer.We
 ```
 
 运行时根据用户在配置文件中的设置，通过`spi`加载用户指定的负载均衡策略实现类
+
+`spi`机制提高了系统拓展性，用户可通过实现`LoadBalancer`接口实现自定义负载均衡策略
