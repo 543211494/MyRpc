@@ -1,6 +1,7 @@
 package com.lzy.rpc.config;
 
 import com.lzy.rpc.consumer.retry.RetryPolicy;
+import com.lzy.rpc.consumer.tolerant.TolerantPolicy;
 import com.lzy.rpc.loadbalancer.LoadBalancerPolicy;
 import lombok.Data;
 import lombok.ToString;
@@ -36,6 +37,11 @@ public class ClientConfig {
      * 重试策略
      */
     private String retry = RetryPolicy.NO_RETRY;
+
+    /**
+     * 容错策略
+     */
+    private String tolerant = TolerantPolicy.DEFAULT_TOLERANT;
 
     public String getAddress(){
         return "http://"+this.serverHost+":"+this.serverPort;
