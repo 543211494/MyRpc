@@ -8,5 +8,5 @@ public interface CalculatorService {
     /**
      * 获取用户
      */
-    public int add(int a,int b);
+    public Integer add(Integer a,Integer b);
 }
