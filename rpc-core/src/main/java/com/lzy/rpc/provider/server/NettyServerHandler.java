@@ -11,12 +11,14 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 
 import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
 
 public class NettyServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
     private static final Serializer serializer = new JdkSerializer();
 
+    /**
+     * 收到消息时调用该方法
+     */
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, FullHttpRequest fullHttpRequest) throws Exception {
         ByteBuf buffer = fullHttpRequest.content();
@@ -33,16 +35,24 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<FullHttpRequ
             Class<?> clazz = LocalRegistry.get(rpcRequest.getServiceName());
             Method method = clazz.getMethod(rpcRequest.getMethodName(), rpcRequest.getParameterTypes());
             Object result = method.invoke(clazz.newInstance(), rpcRequest.getArgs());
-            // 封装返回结果
+            /* 封装返回结果 */
             rpcResponse.setData(result);
             rpcResponse.setDataType(method.getReturnType());
             rpcResponse.setMessage("ok");
         }
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
         response.content().writeBytes(serializer.serialize(rpcResponse));
-        // 设置响应头
+        /* 设置响应头 */
         response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain");
         response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
         channelHandlerContext.writeAndFlush(response);
+    }
+
+    /**
+     * 触发异常时调用该方法关闭连接
+     */
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        ctx.close();
     }
 }

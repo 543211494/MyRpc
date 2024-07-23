@@ -14,21 +14,27 @@ import java.nio.charset.StandardCharsets;
 
 public class ServiceProxy implements InvocationHandler {
 
+    /**
+     * 序列化类
+     */
     private static final Serializer serializer = new JdkSerializer();
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        /* 构造rpc倾请求 */
         RpcRequest rpcRequest = new RpcRequest();
+        /* 获取被调用方法所属接口的名称及路径 */
         rpcRequest.setServiceName(method.getDeclaringClass().getName());
+        /* 获取被调用方法的方法名 */
         rpcRequest.setMethodName(method.getName());
+        /* 获取被调用方法 */
         rpcRequest.setParameterTypes(method.getParameterTypes());
         rpcRequest.setArgs(args);
 
         try {
-            // 序列化
+            /* 序列化 */
             byte[] data = serializer.serialize(rpcRequest);
-            // 发送请求
-            // todo 注意，这里地址被硬编码了（需要使用注册中心和服务发现机制解决）
+            /* 发送请求，此处暂时将路径写死，待后续实现注册中心后修改 */
             try (HttpResponse httpResponse = HttpRequest.post("http://127.0.0.1:8080")
                     .body(data)
                     .execute()) {

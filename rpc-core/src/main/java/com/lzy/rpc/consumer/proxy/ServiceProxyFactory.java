@@ -10,9 +10,8 @@ public class ServiceProxyFactory {
     /**
      * 根据服务类获取代理对象
      *
-     * @param serviceClass
-     * @param <T>
-     * @return
+     * @param serviceClass  被代理接口的class
+     * @return 代理对象
      */
     public static <T> T getProxy(Class<T> serviceClass) {
         return (T) Proxy.newProxyInstance(
