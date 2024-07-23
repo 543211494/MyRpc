@@ -7,7 +7,7 @@ import com.lzy.rpc.anno.RpcService;
 public class CalculatorServiceImpl implements CalculatorService {
 
     @Override
-    public int add(int a, int b) {
+    public Integer add(Integer a, Integer b) {
         return a+b;
     }
 }
