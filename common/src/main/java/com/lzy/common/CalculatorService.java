@@ -1,12 +1,13 @@
 package com.lzy.common;
 
 /**
- * 用户服务
+ * 计算服务
  */
 public interface CalculatorService {
 
     /**
-     * 获取用户
+     * 加法
      */
     public int add(int a,int b);
 }
+
