@@ -17,18 +17,7 @@ public class RoundRobinLoadBalancer implements LoadBalancer{
     @Override
     public ServiceInfo select(List<ServiceInfo> serviceMetaInfoList) {
         int size = serviceMetaInfoList.size();
-        int current = currentIndex.getAndIncrement();
-        int index = current%size;
-        /**
-         * 使用自旋锁更新currentIndex值
-         */
-        if(current>=size){
-            int next;
-            do {
-                current = currentIndex.get();
-                next = (current) % size;
-            } while (!currentIndex.compareAndSet(current, next));
-        }
+        int index = Math.abs(currentIndex.getAndIncrement() % size);
         return serviceMetaInfoList.get(index);
     }
 }
